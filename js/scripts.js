@@ -1,15 +1,23 @@
+import {
+  generateFood,
+  createGameElement,
+  setPosition,
+  directionMap,
+  keyMap,
+} from "./helpers.js";
+
 const board = document.getElementById("game-board");
+const instructionText = document.getElementById("instruction-text");
+const logo = document.getElementById("logo");
 
 const gridSize = 20;
 
-const generateFood = () => {
-  const x = Math.floor(Math.random() * gridSize) + 1;
-  const y = Math.floor(Math.random() * gridSize) + 1;
-  return { x, y };
-};
-
 let snake = [{ x: 10, y: 10 }];
-let food = generateFood();
+let food = generateFood(gridSize);
+let direction = "right";
+let gameInterval;
+let gameSpeedDelay = 200;
+let gameStarted = false;
 
 /**
  *  Draws the game map and determines where the snake and food will be placed.
@@ -20,6 +28,9 @@ const draw = () => {
   drawFood();
 };
 
+/**
+ * Draws the snake on the game board by creating and positioning its segments.
+ */
 const drawSnake = () => {
   for (const segment of snake) {
     const snakeElement = createGameElement("div", "snake");
@@ -29,32 +40,78 @@ const drawSnake = () => {
 };
 
 /**
- * Creates a snake segment or a food cube
- *
- * @param {string} tag
- * @param {string} className
+ * Draws the food on the game board by creating and positioning the food element.
  */
-const createGameElement = (tag, className) => {
-  const element = document.createElement(tag);
-  element.className = className;
-  return element;
-};
-
-/**
- * Changes the style of the game element by moving it around the grid
- *
- * @param {HTMLElement} element
- * @param {number} position
- */
-const setPosition = (element, position) => {
-  element.style.gridColumn = position.x;
-  element.style.gridRow = position.y;
-};
-
 const drawFood = () => {
   const foodElement = createGameElement("div", "food");
   setPosition(foodElement, food);
   board.appendChild(foodElement);
 };
 
-draw();
+const move = () => {
+  const head = { ...snake[0] };
+  const changeDirection = directionMap[direction];
+
+  head.x += changeDirection.x;
+  head.y += changeDirection.y;
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    food = generateFood(gridSize);
+    increaseSpeed();
+    clearInterval(gameInterval);
+
+    gameInterval = setInterval(() => {
+      move();
+      /* checkCollision(); */
+      draw();
+    }, gameSpeedDelay);
+  } else {
+    snake.pop();
+  }
+};
+
+const startGame = () => {
+  gameStarted = true;
+  instructionText.style.display = "none";
+  logo.style.display = "none";
+
+  gameInterval = setInterval(() => {
+    move();
+    /* checkCollision(); */
+    draw();
+  }, gameSpeedDelay);
+};
+
+const handleDirectionKey = (pressedKey) => {
+  const newDirection = keyMap[pressedKey];
+
+  if (newDirection) {
+    direction = newDirection;
+  }
+};
+
+const handleKeyPress = (event) => {
+  const pressedKey = event.code || event.key;
+
+  if (pressedKey === "Space") {
+    startGame();
+  } else {
+    handleDirectionKey(pressedKey);
+  }
+};
+
+document.addEventListener("keydown", handleKeyPress);
+
+const increaseSpeed = () => {
+  if (gameSpeedDelay > 150) {
+    gameSpeedDelay -= 5;
+  }
+};
+
+// draw();
+// setInterval(() => {
+//   move();
+//   draw();
+// }, 200);
