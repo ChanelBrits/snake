@@ -40,7 +40,7 @@ body,
 
 #instruction-text {
     position: absolute;
-    display: inline;
+    display: block;
     justify-self: center;
     top: 55%;
     color: #333;
@@ -89,7 +89,7 @@ body,
 
 #logo {
     position: absolute;
-    display: inline;
+    display: block;
     justify-self: center;
     top: 20%;
 }
